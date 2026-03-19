@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Fuel Efficiency Predictor</title>
+
+        <!-- Bootstrap -->
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        <!-- Google Font -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap"
+            rel="stylesheet">
+
+        <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            transition: 0.5s;
+        }
+
+        /* LIGHT MODE */
+        body.light {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        /* DARK MODE */
+        body.dark {
+            background: #121212;
+            color: #eee;
+        }
+
+        .card-glass {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 20px;
+            width: 450px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        body.dark .card-glass {
+            background: rgba(255,255,255,0.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        input {
+            margin-bottom: 12px;
+            border-radius: 10px !important;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            border: none;
+            color: black;
+            font-weight: 600;
+            border-radius: 25px;
+            padding: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-gradient:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #00f2fe;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            background: #fff;
+            color: black;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 15px;
+            background: rgba(0,255,200,0.2);
+        }
+
+        .accuracy {
+            font-size: 14px;
+            color: gold;
+        }
+
+        .confidence {
+            font-size: 14px;
+            color: #00ffcc;
+        }
+
+        /* LOADER */
+        .loader {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .spinner-border {
+            width: 2rem;
+            height: 2rem;
+        }
+
+        body {
+    font-family: 'Poppins', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+
+    display: flex;
+    justify-content: center;   /* horizontal center */
+    align-items: center;       /* vertical center */
+
+    transition: 0.5s;
+}
+
+.card-glass {
+margin: auto;
+    animation: fadeIn 1s ease-in-out;
+}
+    </style>
+    </head>
+
+    <body class="light">
+
+        <div class="toggle-btn" onclick="toggleMode()">🌙 Dark</div>
+
+        <div class="card-glass text-center">
+
+            <h3>Fuel Efficiency Predictor</h3>
+
+            <p class="accuracy">Accuracy (R²): {{ accuracy | round(3) }}</p>
+
+            <!-- FORM -->
+            <form action="/predict" method="post" onsubmit="showLoader()">
+                <input class="form-control" type="number" name="cylinders"
+                    placeholder="Cylinders" required>
+                <input class="form-control" type="number" name="horsepower"
+                    placeholder="Horsepower" required>
+                <input class="form-control" type="number" name="weight"
+                    placeholder="Weight" required>
+                <input class="form-control" type="number" name="acceleration"
+                    placeholder="Acceleration" required>
+
+                <button class="btn btn-gradient w-100 mt-2">Predict</button>
+            </form>
+
+            <!-- LOADING -->
+            <div class="loader" id="loader">
+                <div class="spinner-border text-light"></div>
+                <p>Predicting...</p>
+            </div>
+
+            <!-- RESULT -->
+            {% if prediction %}
+            <div class="result-box">
+                <h5>Predicted MPG: {{ prediction }}</h5>
+                <p class="confidence">Confidence: {{ confidence | default(90)
+                    }}%</p>
+            </div>
+
+            <!-- CHART -->
+            <canvas id="chart"></canvas>
+
+            <script>
+        const ctx = document.getElementById("chart").getContext("2d");
+        const dataValues = JSON.parse('{{ data_values | safe }}');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Cylinders', 'Horsepower', 'Weight', 'Acceleration'],
+                datasets: [{
+                    label: 'Input Values',
+                    data: dataValues
+                }]
+            }
+        });
+    </script>
+            {% endif %}
+
+        </div>
+
+        <script>
+    function toggleMode() {
+        const body = document.body;
+        body.classList.toggle("dark");
+        body.classList.toggle("light");
+    }
+
+    function showLoader() {
+        document.getElementById("loader").style.display = "block";
+    }
+</script>
+
+    </body>
+</html>
