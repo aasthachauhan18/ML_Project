@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Predict | Fuel Efficiency Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="light">
+  <nav class="navbar">
+    <div class="logo">🚗 Fuel Predictor</div>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/predict" class="active-link">Predict</a></li>
+      <li><button class="mode-btn" onclick="toggleMode()">🌙</button></li>
+    </ul>
+  </nav>
+
+  <section class="predict-wrapper">
+    <div class="predict-card">
+      <h1>Fuel Efficiency Predictor</h1>
+      <p class="subtext">Enter vehicle details to predict MPG</p>
+
+      <p class="accuracy-text">Model Accuracy (R²): {{ accuracy|round(3) }}</p>
+
+      <form action="/predict" method="POST" onsubmit="showLoader()">
+        <input type="number" step="1" min="3" max="8" name="cylinders" placeholder="Enter number of cylinders" required>
+        <input type="number" step="any" min="50" max="230" name="horsepower" placeholder="Enter horsepower value" required>
+        <input type="number" step="any" min="1500" max="5000" name="weight" placeholder="Enter vehicle weight" required>
+        <input type="number" step="any" min="8" max="24" name="acceleration" placeholder="Enter acceleration" required>
+
+        <button type="submit" class="btn-primary full-btn">⚡ Predict MPG</button>
+      </form>
+
+      <p class="hint-text">
+        For better prediction, use realistic vehicle values within the suggested range.
+      </p>
+
+      <div class="suggestion-box">
+        <h3>Suggested Input Range</h3>
+        <table class="suggestion-table">
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Recommended</th>
+              <th>Allowed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cylinders</td>
+              <td>4 to 6</td>
+              <td>3 to 8</td>
+            </tr>
+            <tr>
+              <td>Horsepower</td>
+              <td>95 to 185</td>
+              <td>50 to 230</td>
+            </tr>
+            <tr>
+              <td>Weight</td>
+              <td>2400 to 4100</td>
+              <td>1500 to 5000</td>
+            </tr>
+            <tr>
+              <td>Acceleration</td>
+              <td>12 to 20</td>
+              <td>8 to 24</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="example-values">
+          <h4>Example Input</h4>
+          <p><strong>Cylinders:</strong> 4</p>
+          <p><strong>Horsepower:</strong> 120</p>
+          <p><strong>Weight:</strong> 2800</p>
+          <p><strong>Acceleration:</strong> 15</p>
+        </div>
+      </div>
+
+      <div class="loader" id="loader">
+        <div class="spinner"></div>
+        <p>Predicting...</p>
+      </div>
+
+      {% if prediction is not none %}
+      <div class="result-box">
+        <h2>Prediction Result</h2>
+        <p><strong>Predicted MPG:</strong> {{ prediction }}</p>
+        <p><strong>Confidence:</strong> {{ confidence }}%</p>
+      </div>
+      {% endif %}
+
+      {% if data_values %}
+      <div class="chart-box">
+        <h3>Input Visualization</h3>
+        <canvas id="predictionChart"></canvas>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>Real-time MPG prediction using Machine Learning</p>
+  </footer>
+
+  <script>
+    const values = {{ data_values | tojson }};
+
+    if (values && values.length > 0) {
+      const canvas = document.getElementById("predictionChart");
+
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: ["Cylinders", "Horsepower", "Weight", "Acceleration"],
+            datasets: [{
+              label: "Input Values",
+              data: values,
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false
+          }
+        });
+      }
+    }
+  </script>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
