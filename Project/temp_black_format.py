@@ -98,25 +98,42 @@ def predict():
     data_values = []
 
     if request.method == "POST":
-        cylinders = float(request.form.get("cylinders", 0))
-        horsepower = float(request.form.get("horsepower", 0))
-        weight = float(request.form.get("weight", 0))
-        acceleration = float(request.form.get("acceleration", 0))
+        try:
+            cylinders = float(request.form.get("cylinders", 0))
+            horsepower = float(request.form.get("horsepower", 0))
+            weight = float(request.form.get("weight", 0))
+            acceleration = float(request.form.get("acceleration", 0))
 
-        input_array = np.array([[cylinders, horsepower, weight, acceleration]])
-        scaled_input = scaler.transform(input_array)
-        result = model.predict(scaled_input)[0]
+            input_array = np.array([[cylinders, horsepower, weight, acceleration]])
+            scaled_input = scaler.transform(input_array)
+            result = model.predict(scaled_input)[0]
 
-        prediction = round(float(result), 2)
-        data_values = [cylinders, horsepower, weight, acceleration]
+            prediction = round(float(result), 2)
+            data_values = [cylinders, horsepower, weight, acceleration]
 
-        log_prediction(
-            cylinders=cylinders,
-            horsepower=horsepower,
-            weight=weight,
-            acceleration=acceleration,
-            prediction=prediction
-        )
+            return render_template(
+                "predict.html",
+                prediction=prediction,
+                confidence=confidence,
+                accuracy=accuracy,
+                data_values=data_values
+            )
+
+        except Exception:
+            return render_template(
+        "predict.html",
+        prediction="Invalid Input",
+        confidence=confidence,
+        accuracy=accuracy,
+        data_values=[]
+    )
+    log_prediction(
+    cylinders=cylinders,
+    horsepower=horsepower,
+    weight=weight,
+    acceleration=acceleration,
+    prediction=prediction
+)
 
     return render_template(
         "predict.html",
@@ -125,6 +142,7 @@ def predict():
         accuracy=accuracy,
         data_values=data_values
     )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
